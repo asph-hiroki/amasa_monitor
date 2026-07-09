@@ -216,3 +216,29 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# CERN ROOT / experimental data
+*.root
+!data/sample/*.root
+*.dat
+*.raw
+*.h5
+*.hdf5
+
+data/raw/
+data/private/
+data/run*/
+output/
+outputs/
+
+# secrets
+.env
+*.key
+*.pem
+
+# C++ / ROOT build artifacts
+*.so
+*.d
+*.pcm
+*.o
+*.exe
+
