@@ -1,0 +1,20 @@
+# generated data
+figure/
+logs/
+
+# ROOT / generated plot data
+*.root
+*.json
+
+# logs
+*.log
+
+# backups
+*.bak
+*.bak_*
+*~
+
+# temporary files
+.DS_Store
+__pycache__/
+*.pyc
