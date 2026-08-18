@@ -21,3 +21,6 @@ __pycache__/
 
 # diagnostic outputs
 raw_check/
+
+# legacy
+legacy/
