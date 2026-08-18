@@ -18,3 +18,6 @@ logs/
 .DS_Store
 __pycache__/
 *.pyc
+
+# diagnostic outputs
+raw_check/

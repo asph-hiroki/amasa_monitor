@@ -456,22 +456,47 @@ function chooseDataset(durationSec, selectedBinSec) {
   let bestKey = null;
   let bestScore = null;
 
-  /*
-    Rule:
-      dataset duration must cover requested duration
-      dataset base bin must be equal or finer than requested bin
-  */
-  for (const [key, ds] of Object.entries(datasets)) {
-    if (ds.duration_sec < durationSec) continue;
-    if (ds.base_bin_sec > selectedBinSec) continue;
+  const reqDuration = Number(durationSec);
+  const reqBin = Number(selectedBinSec);
+  const durationToleranceSec = 2;
 
-    const score = ds.duration_sec / ds.base_bin_sec;
+  console.log("chooseDataset", {
+    durationSec: reqDuration,
+    selectedBinSec: reqBin,
+    datasets: datasets
+  });
+
+  if (!Number.isFinite(reqDuration) || !Number.isFinite(reqBin)) {
+    console.error("Invalid duration/bin", { durationSec, selectedBinSec });
+    return null;
+  }
+
+  for (const [key, dsRaw] of Object.entries(datasets)) {
+    const dsDuration = Number(dsRaw.duration_sec);
+    const dsBaseBin = Number(dsRaw.base_bin_sec);
+
+    const coversDuration = dsDuration + durationToleranceSec >= reqDuration;
+    const fineEnough = dsBaseBin <= reqBin;
+
+    console.log("dataset candidate", {
+      key,
+      dsDuration,
+      dsBaseBin,
+      coversDuration,
+      fineEnough
+    });
+
+    if (!coversDuration) continue;
+    if (!fineEnough) continue;
+
+    const score = dsDuration / dsBaseBin;
     if (bestScore === null || score < bestScore) {
       bestKey = key;
       bestScore = score;
     }
   }
 
+  console.log("selected dataset", bestKey);
   return bestKey;
 }
 
