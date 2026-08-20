@@ -192,6 +192,7 @@
         Bin:
         <select id="binSelect">
           <option value="auto">Auto</option>
+          <option value="1">Raw (1 sec)</option>
           <option value="10">10 sec</option>
           <option value="60">1 min</option>
           <option value="300">5 min</option>
@@ -366,6 +367,7 @@ function parseManualJstToUnix(inputValue) {
 }
 
 function formatBin(sec) {
+  if (sec === 1) return "Raw (1 sec)";
   if (sec === 10) return "10 sec";
   if (sec === 60) return "1 min";
   if (sec === 300) return "5 min";
@@ -442,11 +444,16 @@ function getRangeDurationSec() {
   return latest.ranges[rangeKey].duration_sec;
 }
 
-function chooseRequestedBinSec() {
+function chooseRequestedBinSec(durationSec) {
   const binValue = document.getElementById("binSelect").value;
-  if (binValue !== "auto") return Number(binValue);
+  if (binValue !== "auto") {
+    const selectedBinSec = Number(binValue);
+    if (!Number.isFinite(selectedBinSec) || selectedBinSec <= 0) {
+      throw new Error("Invalid bin selection.");
+    }
+    return selectedBinSec;
+  }
 
-  const durationSec = getRangeDurationSec();
   const nTraces = getSelectedTraceCount();
   return chooseAutoBin(durationSec, nTraces);
 }
@@ -458,7 +465,6 @@ function chooseDataset(durationSec, selectedBinSec) {
 
   const reqDuration = Number(durationSec);
   const reqBin = Number(selectedBinSec);
-  const durationToleranceSec = 2;
 
   console.log("chooseDataset", {
     durationSec: reqDuration,
@@ -475,7 +481,10 @@ function chooseDataset(durationSec, selectedBinSec) {
     const dsDuration = Number(dsRaw.duration_sec);
     const dsBaseBin = Number(dsRaw.base_bin_sec);
 
-    const coversDuration = dsDuration + durationToleranceSec >= reqDuration;
+    // Dataset boundaries are aligned to its base bin, while manual inputs are
+    // minute-aligned.  Allow one source bin at the boundary when comparing the
+    // requested wall-clock duration with the dataset's nominal duration.
+    const coversDuration = dsDuration + dsBaseBin >= reqDuration;
     const fineEnough = dsBaseBin <= reqBin;
 
     console.log("dataset candidate", {
@@ -706,7 +715,9 @@ async function renderAll() {
 
   const { startUnix, endUnix, durationSec } = computeRange();
 
-  const binSec = chooseRequestedBinSec();
+  // Use the duration computed with this range's start/end for both automatic
+  // binning and dataset selection.  This keeps manual-range checks consistent.
+  const binSec = chooseRequestedBinSec(durationSec);
   currentBinSec = binSec;
   currentRangeStart = startUnix;
   currentRangeEnd = endUnix;

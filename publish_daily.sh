@@ -122,6 +122,11 @@ mkdir -p "${LOG_DIR}"
     exit 1
   fi
 
+  if [ ! -f "${PLOTLY_JSON_DIR}/scaler_1sec_last1d.json" ]; then
+    echo "ERROR: Plotly raw last1d JSON not found: ${PLOTLY_JSON_DIR}/scaler_1sec_last1d.json"
+    exit 1
+  fi
+
   if [ ! -f "${PLOTLY_JSON_DIR}/scaler_1min_last7d.json" ]; then
     echo "ERROR: Plotly last7d JSON not found: ${PLOTLY_JSON_DIR}/scaler_1min_last7d.json"
     exit 1
