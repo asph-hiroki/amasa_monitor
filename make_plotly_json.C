@@ -358,8 +358,8 @@ bool write_latest_plotly_json(const string& outfile,
   fout << "\n";
 
   fout << "  \"bin_policy\": {\n";
-  fout << "    \"candidate_bins_sec\": [10, 60, 300, 600, 1200, 1800, 3600],\n";
-  fout << "    \"candidate_bins_label\": [\"10 sec\", \"1 min\", \"5 min\", \"10 min\", \"20 min\", \"30 min\", \"1 hour\"],\n";
+  fout << "    \"candidate_bins_sec\": [1, 10, 60, 300, 600, 1200, 1800, 3600],\n";
+  fout << "    \"candidate_bins_label\": [\"Raw (1 sec)\", \"10 sec\", \"1 min\", \"5 min\", \"10 min\", \"20 min\", \"30 min\", \"1 hour\"],\n";
   fout << "    \"target_total_points\": " << target_total_points << ",\n";
   fout << "    \"min_points_per_trace\": " << min_points_per_trace << ",\n";
   fout << "    \"max_points_per_trace\": " << max_points_per_trace << ",\n";
@@ -391,6 +391,12 @@ bool write_latest_plotly_json(const string& outfile,
   fout << "\n";
 
   fout << "  \"datasets\": {\n";
+  fout << "    \"last1d_1sec\": {\n";
+  fout << "      \"label\": \"Last 1 day, raw (1 sec)\",\n";
+  fout << "      \"duration_sec\": " << last1d_duration_sec << ",\n";
+  fout << "      \"base_bin_sec\": 1,\n";
+  fout << "      \"file\": \"figure/" << date_dir << "/json/scaler_1sec_last1d.json\"\n";
+  fout << "    },\n";
   fout << "    \"last1d_10sec\": {\n";
   fout << "      \"label\": \"Last 1 day, 10 sec base\",\n";
   fout << "      \"duration_sec\": " << last1d_duration_sec << ",\n";
@@ -454,10 +460,16 @@ void make_plotly_json(const char* data_root = "/disk/alpaca/data/Akeno-MiniArray
   gSystem->mkdir(out_dir.c_str(), kTRUE);
   gSystem->mkdir(json_dir.c_str(), kTRUE);
 
+  string f_raw_last1d = json_dir + "/scaler_1sec_last1d.json";
   string f_last1d = json_dir + "/scaler_10sec_last1d.json";
   string f_last7d = json_dir + "/scaler_1min_last7d.json";
   string f_last1m = json_dir + "/scaler_5min_last1m.json";
   string f_latest = string(out_base) + "/latest_plotly.json";
+
+  bool ok0 = write_dataset_json(f_raw_last1d, "last1d_1sec",
+                                "Last 1 day, raw (1 sec)",
+                                records, latest_epoch_utc,
+                                last1d_duration_sec, 1);
 
   bool ok1 = write_dataset_json(f_last1d, "last1d_10sec",
                                 "Last 1 day, 10 sec base",
@@ -501,7 +513,7 @@ void make_plotly_json(const char* data_root = "/disk/alpaca/data/Akeno-MiniArray
   cout << "JSON dir:             " << json_dir << endl;
   cout << "Latest Plotly JSON:   " << f_latest << endl;
 
-  if (ok1 && ok2 && ok3 && ok4) {
+  if (ok0 && ok1 && ok2 && ok3 && ok4) {
     cout << "Status: OK" << endl;
   } else {
     cout << "Status: ERROR" << endl;
